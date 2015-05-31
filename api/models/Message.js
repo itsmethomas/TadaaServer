@@ -36,7 +36,7 @@ module.exports = {
 		var pfx = join(__dirname, '../../certs/aps_pro.p12');
 
 		agent.set('pfx file', pfx);
-		agent.enable('sandbox');
+//		agent.enable('sandbox');
 
 		agent.connect(function (err) {
 		});
