@@ -39,8 +39,11 @@ module.exports = {
 		region: {
 			type: 'string'
 		},
-		loc_lat: {
-			type: 'string'
+		settings: {
+			type: 'json'
+		},
+		location: {
+			type: 'json'
 		},
 		loc_lng: {
 			type: 'string'

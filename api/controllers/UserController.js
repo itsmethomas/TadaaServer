@@ -28,6 +28,7 @@ module.exports = {
 
 		User.find ({"fbId":fbId}, function(err, users) {
 			if (users.length > 0) {
+				console.log(User.adapter.createIndex);
 				userInfo = users[0];
 
 				var ageDifMs = Date.now() - userInfo.birthDate.getTime();
@@ -40,6 +41,7 @@ module.exports = {
 					console.log(err);
 					userInfo = user;
 					getUserPhotos();
+					//User.createIndex({location:"2dsphere"});
 				});
 			}
 		});
@@ -70,17 +72,36 @@ module.exports = {
 		  });
 	},
 	explore: function (req, res) {
-		  User.find().exec(function(err, users) {
-			  if (err == null)
-			  {
-				  res.write('{"status":"ok", "users":' + JSON.stringify(users) + '}');
-			  }
-			  else
-			  {
-				  res.write('{"status":"error", "content":"' + err + '"}');
-			  }
-			  res.end();
-		  });
+		var startDate = new Date();
+		var endDate = new Date();
+		startDate.setYear(startDate.getYear() - req.body.age[1]);
+		endDate.setYear(endDate.getYear() - req.body.age[0]);
+
+		console.log(req.body.location);
+		var condition = {
+			sex:req.body.gender,
+			location:{
+				$geoWithin:{
+					$centerSphere:[
+						[req.body.location[0][0],
+						req.body.location[0][1]
+						], req.body.location[1]
+					]
+				}
+			},
+			birthDate: {$gte:startDate, $lt:endDate}
+		}
+
+		console.log(req.body);
+		console.log(condition);
+		User.find(condition).exec(function(err, users) {
+			if (err == null){
+				res.write('{"status":"ok", "users":' + JSON.stringify(users) + '}');
+			} else {
+				res.write('{"status":"error", "content":"' + err + '"}');
+			}
+			res.end();
+		});
 	},
 	savePhoto: function (req, res) {
 		var reqJSON = req.body;
@@ -108,55 +129,50 @@ module.exports = {
 	},
 	updateVideo: function (req, res) {
 		if(req.method === 'GET')
-			return res.json({'status':'GET not allowed'});						
+			return res.json({'err':'GET not allowed'});						
 
 		var userId = req.param('userId');
-		var uploadFile = req.file('videoFile');
+		var uploadFile = req.files.videoFile;
 
-	    uploadFile.upload(function onUploadComplete (err, files) {				
-	    	if (err) return res.serverError(err);								
+		// move to real upload folder...
+		var fs = require('fs');
+		var tmp_path = uploadFile.path;
+		var target_path = './assets/videos/' + userId + '.mp4';
 
-			// move to real upload folder...
-			var fs = require('fs');
-			var tmp_path = files[0].fd;
-			var target_path = './assets/videos/' + userId + '.mp4';
+		fs.createReadStream(tmp_path).pipe(fs.createWriteStream(target_path).on("close", function() {
+			fs.unlink(tmp_path, function(err) {
+				if (err) throw err;
+			});
 
-			console.log(target_path);
-			fs.createReadStream(tmp_path).pipe(fs.createWriteStream(target_path).on("close", function() {
-				fs.unlink(tmp_path, function(err) {
-					if (err) throw err;
-				});
+			// update user video url
+			User.find({"id":userId}, function(err, users) {
+				console.log(err);
+				if (err != null || users.length == 0)
+				{
+					res.end('{"err":"failed"}');
+				}
+				else
+				{
+					var userInfo = users[0];
+					var protocol = req.connection.encrypted?'https':'http';
+					var baseUrl = protocol + '://' + req.headers.host + '/';
 
-				// update user video url
-				User.find({"id":userId}, function(err, users) {
-					console.log(err);
-					if (err != null || users.length == 0)
-					{
-						res.end('{"status":"failed"}');
-					}
-					else
-					{
-						var userInfo = users[0];
-						var protocol = req.connection.encrypted?'https':'http';
-						var baseUrl = protocol + '://' + req.headers.host + '/';
-
-						userInfo.videoUrl = baseUrl + "videos/" + userId + ".mp4";
-						User.update({"id":userId}, userInfo).exec(function (err, result) {
-							console.log(err);
-							console.log(result);
-							if (err == null)
-							{
-								res.end(JSON.stringify(result[0]));
-							}
-							else
-							{
-								res.end('{"status":"failed"}');
-							}
-						});
-					}
-				});
-			}));
-	    });
+					userInfo.videoUrl = baseUrl + "videos/" + userId + ".mp4";
+					User.update({"id":userId}, userInfo).exec(function (err, result) {
+						console.log(err);
+						console.log(result);
+						if (err == null)
+						{
+							res.end(JSON.stringify(result[0]));
+						}
+						else
+						{
+							res.end('{"err":"failed"}');
+						}
+					});
+				}
+			});
+		}));
 	}
 };
 
