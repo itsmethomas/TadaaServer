@@ -50,11 +50,11 @@ module.exports.connections = {
   //
   myMongoServer: {
     adapter   : 'sails-mongo',
-    host      : 'ds043062.mongolab.com',
-    port      : 43062,
-    user      : 'admin',
-    password  : 'admin',
-    database  : 'heroku_app37367208'
+    host      : 'localhost',
+    port      : 27017,
+//    user      : 'username',
+//    password  : 'password',
+    database  : 'tadaa_db'
   },
 
   // PostgreSQL is another officially supported relational database. 
