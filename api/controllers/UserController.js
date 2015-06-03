@@ -127,6 +127,18 @@ module.exports = {
 			});
 		});
 	},
+	saveSettings: function (req, res) {
+		var reqJSON = req.body;
+		var userId = reqJSON.userId;
+		User.findOne({id:userId}, function (err, user) {
+			if (user) {
+				user.settings = reqJSON.settings;
+				User.update({id:user.id}, user).exec(function (err, result){
+					res.end(JSON.stringify({status:"ok"}));
+				});
+			}
+		});
+	},
 	updateVideo: function (req, res) {
 		if(req.method === 'GET')
 			return res.json({'err':'GET not allowed'});						

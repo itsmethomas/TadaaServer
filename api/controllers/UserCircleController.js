@@ -17,10 +17,7 @@ module.exports = {
 		User.find ({"id":friendId}, function(err, users) {
 			if (users.length > 0) {
 				var friendInfo = users[0];
-				console.log(friendInfo);
 				UserCircle.create(jsonObj, function(err, circle) {
-					console.log(err);
-					console.log(circle);
 					if (err) {
 						res.end(JSON.stringify({success:error}));
 					}else {
@@ -58,6 +55,43 @@ module.exports = {
 			  function(err, circles) {
 				res.end(JSON.stringify(circles));
 			});
+	  },
+	swapCircle: function (req, res) {
+		  var userId = req.body.userId;
+		  var userName = req.body.userName;
+		  var circleId = req.body.circleId;
+		  var friendId = req.body.friendId;
+
+		  UserCircle.findOne({id:circleId}, function (err, cc) {
+			  if (err) {
+				  res.end(JSON.stringify({failed:"Circle does not exist."}));
+			  } else {
+				  cc.status = 'expired';
+				  UserCircle.update({id:cc.id}, cc).exec(function (err, result) {});
+				  var jsonObj = {ownerId:userId, friendId:friendId, status:'invited', ownerUnread:0, inviterUnread:0};
+				  User.find ({"id":friendId}, function(err, users) {
+					if (users.length > 0) {
+						var friendInfo = users[0];
+						UserCircle.create(jsonObj, function(err, circle) {
+							if (err) {
+								res.end(JSON.stringify({success:error}));
+							}else {
+								res.end(JSON.stringify({success:"YES", circle:circle, friendInfo:friendInfo}));
+							}
+						});
+
+						// if friend is online or away, send socket event.
+						if (friendInfo.status == 'online' || friendInfo.status == 'away') {
+							sails.sockets.emit(friendInfo.sessionId, 'circle_invited', {ownerName:userName, ownerId:userId});
+						} else { // else send push notification
+							Message.sendPush(friendInfo.deviceToken, 'You received an invitation from ' + userName);
+						}
+					} else {
+						res.end(JSON.stringify({success:"Friend does not exist."}));
+					}
+				});
+			  }
+		  });
 	  },
 	updateCircleStatus: function (req, res) {
 		  var circleId = req.param('circleId');
