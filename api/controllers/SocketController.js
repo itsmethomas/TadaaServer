@@ -60,7 +60,7 @@ module.exports = {
 	  },
 	allStatus: function (req, res) {
 		  var userId = req.body.userId;
-		  var condition = {$or:[{"ownerId":userId}, {"friendId":userId}], $or:[{"status":"accepted"}, {"status":"invited"}]};
+		  var condition = {$and:[{$or:[{"ownerId":userId}, {"friendId":userId}]}, {$or:[{"status":"accepted"}, {"status":"invited"}]}]};
 		  UserCircle.find(condition, function (err, circles) {
 			  var session_id = sails.sockets.id(req.socket);
 			  sails.sockets.emit(session_id, 'all_status', {circles:circles});

@@ -40,7 +40,20 @@ module.exports = {
 				User.create(req.body, function(err, user) {
 					console.log(err);
 					userInfo = user;
-					getUserPhotos();
+
+					var newPhoto = {
+						userId:user.id,
+						fbPhotoId:user.id,
+						photoUrl:user.photoUrl,
+						thumbnailUrl:user.photoUrl
+					};
+
+					console.log(newPhoto);
+
+					UserPhotos.create(newPhoto, function (err, photo) {
+						console.log(err);
+						getUserPhotos();
+					});
 					//User.createIndex({location:"2dsphere"});
 				});
 			}
@@ -135,6 +148,21 @@ module.exports = {
 				user.settings = reqJSON.settings;
 				User.update({id:user.id}, user).exec(function (err, result){
 					res.end(JSON.stringify({status:"ok"}));
+				});
+			}
+		});
+	},
+	saveProfilePhoto: function (req, res) {
+		var userId = req.body.userId;
+		var photoUrl = req.body.photoUrl;
+		User.findOne({"id":userId}, function(err, user) {
+			console.log(err);
+			if (err) {
+				res.end('{"err":"failed"}');
+			} else {
+				user.photoUrl = photoUrl;
+				User.update({"id":user.id}, user).exec(function (err, result) {
+					res.end('{"success":"yes"}');
 				});
 			}
 		});
