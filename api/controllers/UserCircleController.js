@@ -27,7 +27,8 @@ module.exports = {
 
 				// if friend is online or away, send socket event.
 				if (friendInfo.status == 'online' || friendInfo.status == 'away') {
-					sails.sockets.emit(friendInfo.sessionId, 'circle_invited', {ownerName:ownerName, ownerId:ownerId});
+					console.log(friendInfo);
+					sails.sockets.emit(friendInfo.session_id, 'circle_invited', {ownerName:ownerName, ownerId:ownerId});
 				} else { // else send push notification
 					Message.sendPush(friendInfo.deviceToken, 'You received an invitation from ' + ownerName);
 				}
@@ -82,7 +83,7 @@ module.exports = {
 
 						// if friend is online or away, send socket event.
 						if (friendInfo.status == 'online' || friendInfo.status == 'away') {
-							sails.sockets.emit(friendInfo.sessionId, 'circle_invited', {ownerName:userName, ownerId:userId});
+							sails.sockets.emit(friendInfo.session_id, 'circle_invited', {ownerName:userName, ownerId:userId});
 						} else { // else send push notification
 							Message.sendPush(friendInfo.deviceToken, 'You received an invitation from ' + userName);
 						}
