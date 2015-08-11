@@ -102,7 +102,7 @@ module.exports = {
 		  UserCircle.find({id:circleId}, function(err, circles) {
 			  if (circles.length > 0) {
 				  var circle = circles[0];
-				  circle.createdAt = circle.updatedAt;
+				  circle.createdAt = new Date();
 				  circle.status = status;
 				  UserCircle.update({id:circle.id}, circle).exec(function (err, result) {
 							console.log(err);

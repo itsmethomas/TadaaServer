@@ -17,17 +17,21 @@ module.exports = {
 		console.log(msgInfo);
 		Message.create(msgInfo, function (err, msg) {
 			// get count of all unread messages...
-			var condition = {$or:[{"ownerId":toId}, {"friendId":toId}], "status":"accepted"};
+			var condition = {$or:[{"ownerId":toId}, {"friendId":toId}]};
 			console.log (condition);
 			UserCircle.find(condition, function (err, circles) {
 				var count = 0;
 				console.log ('--- circle count', circles.length);
 				for (var i=0; i<circles.length; i++) {
 					var circle = circles[i];
-					if (circle.ownerId == toId) {
-						count += circle.ownerUnread - 1 + 1;
-					} else {
-						count += circle.inviterUnread - 1 + 1;
+					if (circle.status == "invited") {
+						count++;
+					} else if (circle.status == "accepted") {
+						if (circle.ownerId == toId) {
+							count += circle.ownerUnread - 1 + 1;
+						} else {
+							count += circle.inviterUnread - 1 + 1;
+						}
 					}
 				}
 
