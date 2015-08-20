@@ -26,6 +26,8 @@ module.exports = {
 			});
 		}
 
+		console.log(req.body);
+
 		User.find ({"fbId":fbId}, function(err, users) {
 			if (users.length > 0) {
 				console.log(User.adapter.createIndex);
@@ -37,6 +39,8 @@ module.exports = {
 
 				getUserPhotos();
 			} else {
+				console.log(req.body);
+
 				User.create(req.body, function(err, user) {
 					console.log(err);
 					userInfo = user;
@@ -92,7 +96,6 @@ module.exports = {
 
 		console.log(req.body.location);
 		var condition = {
-			sex:req.body.gender,
 			location:{
 				$geoWithin:{
 					$centerSphere:[
@@ -103,6 +106,10 @@ module.exports = {
 				}
 			},
 			birthDate: {$gte:startDate, $lt:endDate}
+		}
+
+		if (req.body.gender != 'all') {
+			condition.sex = req.body.gender;
 		}
 
 		console.log(req.body);

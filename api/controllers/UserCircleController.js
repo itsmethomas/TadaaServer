@@ -13,7 +13,6 @@ module.exports = {
 		var status = req.param('status');
 
 		var jsonObj = {ownerId:ownerId, friendId:friendId, status:status, ownerUnread:0, inviterUnread:0};
-		console.log(jsonObj);
 		User.find ({"id":friendId}, function(err, users) {
 			if (users.length > 0) {
 				var friendInfo = users[0];
@@ -26,11 +25,10 @@ module.exports = {
 				});
 
 				// if friend is online or away, send socket event.
-				if (friendInfo.status == 'online' || friendInfo.status == 'away') {
-					console.log(friendInfo);
+				if (friendInfo.status == 'online') {
 					sails.sockets.emit(friendInfo.session_id, 'circle_invited', {ownerName:ownerName, ownerId:ownerId});
 				} else { // else send push notification
-					Message.sendPush(friendInfo.deviceToken, 'You received an invitation from ' + ownerName);
+					Message.sendPushWithBadge(friendInfo.deviceToken, 'You received an invitation from ' + ownerName, 1);
 				}
 			} else {
 				res.end(JSON.stringify({success:"Friend does not exist."}));
@@ -47,10 +45,6 @@ module.exports = {
 		  var myUserId = req.param('userId');
 		  var friendId = req.param('friendId');
 
-		  console.log(req.param);
-
-		  console.log([{ownerId:myUserId, friendId:friendId, status:'accepted'},
-			  {friendId:myUserId, ownerId:friendId, status:'accepted'}]);
 		  UserCircle.find({$or:[{ownerId:myUserId, friendId:friendId, status:'accepted'},
 			  {friendId:myUserId, ownerId:friendId, status:'accepted'}]},
 			  function(err, circles) {
@@ -82,7 +76,7 @@ module.exports = {
 						});
 
 						// if friend is online or away, send socket event.
-						if (friendInfo.status == 'online' || friendInfo.status == 'away') {
+						if (friendInfo.status == 'online') {
 							sails.sockets.emit(friendInfo.session_id, 'circle_invited', {ownerName:userName, ownerId:userId});
 						} else { // else send push notification
 							Message.sendPush(friendInfo.deviceToken, 'You received an invitation from ' + userName);
@@ -104,6 +98,7 @@ module.exports = {
 				  var circle = circles[0];
 				  circle.createdAt = new Date();
 				  circle.status = status;
+				  console.log(circle);
 				  UserCircle.update({id:circle.id}, circle).exec(function (err, result) {
 							console.log(err);
 							console.log(result);
