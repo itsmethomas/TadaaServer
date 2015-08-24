@@ -124,5 +124,16 @@ module.exports = {
 			  }
 		  });
 	  },
+	  blockUser: function (req, res) {
+	  	var circleId = req.body.circleId;
+	  	var blockedSide = req.body.blockedSide;
+
+	  	UserCircle.findOne({id:circleId}, function (err, circleInfo) {
+	  		circleInfo.blockedSide = blockedSide;
+	  		UserCircle.update({id:circleInfo.id}, circleInfo).exec(function (err, result) {
+	  			res.end(JSON.stringify(result[0]));
+	  		});
+	  	});
+	  }
 };
 

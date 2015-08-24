@@ -28,5 +28,8 @@ module.exports = {
 			type: 'string',
 			required:true,
 		},
+		blockedSide: {
+			type: 'string'
+		}
 	}
 };
