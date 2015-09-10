@@ -68,11 +68,19 @@ module.exports.routes = {
   },
   'post /user': {
     controller    : 'User',
+    action        : 'saveProfilePhoto'
+  },
+  'post /user': {
+    controller    : 'User',
     action        : 'saveSettings'
   },
   'get /user': {
     controller    : 'User',
     action        : 'fetchUserProfile'
+  },
+  'post /user': {
+    controller    : 'User',
+    action        : 'deleteAccount'
   },
   'post /circle/create': {
     controller    : 'UserCircle',
@@ -89,6 +97,10 @@ module.exports.routes = {
   'post /circle/swap': {
     controller    : 'UserCircle',
     action        : 'swapCircle'
+  },
+  'post /circle/block': {
+    controller    : 'UserCircle',
+    action        : 'blockUser'
   },
   'get /circle/forFriend': {
     controller    : 'UserCircle',

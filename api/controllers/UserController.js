@@ -99,21 +99,23 @@ module.exports = {
 			location:{
 				$geoWithin:{
 					$centerSphere:[
-						[req.body.location[0][0],
-						req.body.location[0][1]
-						], req.body.location[1]
+						[
+							req.body.location[0][0],
+							req.body.location[0][1]
+						],
+						req.body.location[1]
 					]
 				}
 			},
 			birthDate: {$gte:startDate, $lt:endDate}
 		}
 
+		console.log(condition);
+
 		if (req.body.gender != 'all') {
 			condition.sex = req.body.gender;
 		}
 
-		console.log(req.body);
-		console.log(condition);
 		User.find(condition).exec(function(err, users) {
 			if (err == null){
 				res.write('{"status":"ok", "users":' + JSON.stringify(users) + '}');
@@ -220,6 +222,17 @@ module.exports = {
 				}
 			});
 		}));
+	},
+	deleteAccount: function (req, res) {
+		var userId = req.body.userId;
+
+		// delete All Informations
+		User.destroy({id:userId}, function (err, result){});
+		UserCircle.destroy({$or:[{ownerId:userId}, {friendId:userId}]}, function(err, result) {});
+		Message.destroy({$or:[{fromId:userId}, {toId:userId}]}, function(err, result) {});
+		UserPhotos.destroy({userId:userId}, function(err, result) {});
+
+		res.end("{}");
 	}
 };
 
